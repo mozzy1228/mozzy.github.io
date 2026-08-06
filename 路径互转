@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公司路径互转工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            max-width: 800px;
+            width: 100%;
+            padding: 40px 35px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .sub {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4f8cf7;
+            padding-left: 14px;
+            background: #f8faff;
+            border-radius: 0 8px 8px 0;
+            line-height: 1.8;
+        }
+        .sub code {
+            background: #eef2f7;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1a1a2e;
+        }
+        textarea {
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 15px;
+            font-family: "SF Mono", "Menlo", "Consolas", monospace;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            resize: vertical;
+            min-height: 100px;
+            transition: 0.2s;
+            background: #fafcff;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4f8cf7;
+            box-shadow: 0 0 0 4px rgba(79,140,247,0.1);
+            background: white;
+        }
+        textarea[readonly] {
+            background: #f1f4f9;
+            color: #0f172a;
+            border-color: #d0d8e3;
+            cursor: default;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 18px 0 20px 0;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #eef2f7;
+            color: #1e293b;
+        }
+        .btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+        .btn-primary {
+            background: #1a1a2e;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2d2d4a;
+        }
+        .btn-success {
+            background: #0b8a4c;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #0a7741;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid #d0d8e3;
+        }
+        .btn-outline:hover {
+            border-color: #4f8cf7;
+            background: #f8faff;
+        }
+        .status {
+            margin-top: 18px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #f1f5f9;
+            color: #334155;
+            display: none;
+        }
+        .status.show {
+            display: block;
+        }
+        .status.success {
+            background: #e6f7ec;
+            color: #0b5e3a;
+            border: 1px solid #b8e6cb;
+        }
+        .status.error {
+            background: #fee9e9;
+            color: #a13232;
+            border: 1px solid #fccccc;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #a0aec0;
+            text-align: center;
+            border-top: 1px solid #edf2f7;
+            padding-top: 20px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .badge {
+            background: #e6edfe;
+            color: #4f8cf7;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 20px 15px; }
+            .actions .btn { flex: 1; text-align: center; padding: 10px 12px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📁 路径互转工具 <span class="badge">Mac ↔ Win</span></h1>
+    <div class="sub">
+        ✅ 支持 <code>/Volumes/</code> &nbsp;·&nbsp; <code>smb://</code> &nbsp;·&nbsp; <code>ap.loreal.intra/</code> 三种 Mac 格式自动识别
+    </div>
+
+    <label style="font-weight:500; font-size:14px; color:#475569; display:block; margin-bottom:6px;">📋 粘贴原始路径</label>
+    <textarea id="inputPath" placeholder="在此粘贴需要转换的路径..."></textarea>
+
+    <div class="actions">
+        <button class="btn btn-outline" onclick="pasteClipboard()">📥 粘贴剪贴板</button>
+        <button class="btn btn-primary" onclick="convert()">🔄 转 换</button>
+        <button class="btn btn-outline" onclick="clearAll()">✕ 清空</button>
+    </div>
+
+    <label style="font-weight:500; font-size:14px; color:#475569; display:block; margin-bottom:6px;">✅ 转换结果（已自动复制）</label>
+    <textarea id="outputPath" readonly placeholder="转换后的路径会显示在这里..."></textarea>
+
+    <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-success" onclick="copyResult()">📄 复制结果</button>
+        <button class="btn btn-outline" onclick="swapInputOutput()">⇄ 互换输入输出</button>
+    </div>
+
+    <div id="status" class="status"></div>
+    <div class="footer">纯本地运行 · 路径不会上传 · 支持 Windows / Mac 双向转换</div>
+</div>
+
+<script>
+    // ---------- 核心转换逻辑（和你的 .bat 完全一致）----------
+    function convertPath(raw) {
+        let t = raw.trim();
+        // 去除首尾引号
+        t = t.replace(/^['"]|['"]$/g, '');
+
+        // 定义前缀
+        const WIN_PREFIX = '\\\\ap.loreal.intra\\DepartmentShare\\MCN';
+        const WIN_LOWER = '\\\\ap.loreal.intra\\departmentshare\\mcn';
+
+        const MAC_SMB = 'smb://ap.loreal.intra/DepartmentShare/MCN';
+        const MAC_SMB_LOWER = 'smb://ap.loreal.intra/departmentshare/mcn';
+
+        const MAC_DIRECT = 'ap.loreal.intra/departmentshare/MCN';
+        const MAC_DIRECT_LOWER = 'ap.loreal.intra/departmentshare/mcn';
+
+        const MAC_VOL = '/Volumes/MCN';
+        const MAC_VOL_LOWER = '/volumes/mcn';
+
+        const lower = t.toLowerCase();
+
+        // 1. Win -> Mac (转成 smb:// 格式，不加引号)
+        if (lower.startsWith(WIN_LOWER)) {
+            let rest = t.substring(WIN_PREFIX.length);
+            rest = rest.replace(/\\/g, '/');
+            return MAC_SMB + rest;
+        }
+
+        // 2. Mac smb:// -> Win
+        if (lower.startsWith(MAC_SMB_LOWER)) {
+            let rest = t.substring(MAC_SMB.length);
+            rest = rest.replace(/\//g, '\\');
+            return WIN_PREFIX + rest;
+        }
+
+        // 3. Mac 直接路径 (ap.loreal.intra/departmentshare/MCN) -> Win
+        if (lower.startsWith(MAC_DIRECT_LOWER)) {
+            let rest = t.substring(MAC_DIRECT.length);
+            rest = rest.replace(/\//g, '\\');
+            return WIN_PREFIX + rest;
+        }
+
+        // 4. Mac /Volumes/MCN -> Win
+        if (lower.startsWith(MAC_VOL_LOWER)) {
+            let rest = t.substring(MAC_VOL.length);
+            rest = rest.replace(/\//g, '\\');
+            return WIN_PREFIX + rest;
+        }
+
+        // 未识别任何格式，原样返回
+        return null;
+    }
+
+    // ---------- UI 交互 ----------
+    const inputEl = document.getElementById('inputPath');
+    const outputEl = document.getElementById('outputPath');
+    const statusEl = document.getElementById('status');
+
+    function showStatus(msg, isError = false) {
+        statusEl.textContent = msg;
+        statusEl.className = 'status show' + (isError ? ' error' : ' success');
+        setTimeout(() => {
+            statusEl.className = 'status';
+        }, 4000);
+    }
+
+    function convert() {
+        const raw = inputEl.value;
+        if (!raw.trim()) {
+            showStatus('⚠️ 请先粘贴需要转换的路径', true);
+            return;
+        }
+        const result = convertPath(raw);
+        if (result === null) {
+            showStatus('❌ 未识别路径格式，请检查是否以 /Volumes/、smb://、ap.loreal.intra/ 或 \\\\ap.loreal... 开头', true);
+            outputEl.value = '';
+            return;
+        }
+        outputEl.value = result;
+        // 自动复制到剪贴板
+        navigator.clipboard.writeText(result).then(() => {
+            showStatus('✅ 转换成功，结果已自动复制到剪贴板！');
+        }).catch(() => {
+            // 如果自动复制失败（非HTTPS环境），只显示在框里，让用户手动复制
+            showStatus('✅ 转换成功（请手动点击"复制结果"按钮）');
+        });
+    }
+
+    function pasteClipboard() {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+            navigator.clipboard.readText().then(text => {
+                inputEl.value = text;
+                showStatus('📥 已粘贴剪贴板内容，点击「转换」即可');
+            }).catch(() => {
+                showStatus('⚠️ 读取剪贴板失败，请手动 Ctrl+V 粘贴', true);
+            });
+        } else {
+            showStatus('⚠️ 当前浏览器不支持读取剪贴板，请手动粘贴 (Ctrl+V)', true);
+        }
+    }
+
+    function copyResult() {
+        const val = outputEl.value;
+        if (!val) {
+            showStatus('⚠️ 没有可复制的内容，请先转换', true);
+            return;
+        }
+        navigator.clipboard.writeText(val).then(() => {
+            showStatus('📄 已复制到剪贴板！');
+        }).catch(() => {
+            // fallback
+            outputEl.select();
+            document.execCommand('copy');
+            showStatus('📄 已复制到剪贴板！');
+        });
+    }
+
+    function clearAll() {
+        inputEl.value = '';
+        outputEl.value = '';
+        statusEl.className = 'status';
+    }
+
+    function swapInputOutput() {
+        const out = outputEl.value;
+        if (out) {
+            inputEl.value = out;
+            convert(); // 自动转换
+        } else {
+            showStatus('⚠️ 请先将内容转换，再来互换', true);
+        }
+    }
+
+    // 快捷键支持：Ctrl+Enter 转换
+    inputEl.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            convert();
+        }
+    });
+</script>
+
+</body>
+</html>
